@@ -9,7 +9,10 @@
   },
   "dependencies": {
     "core-js": "^3.6.4",
+    "less": "^3.11.1",
+    "less-loader": "^5.0.0",
     "moment": "^2.24.0",
+    "nodejs-websocket": "^1.7.2",
     "vue": "^2.6.11"
   },
   "devDependencies": {
