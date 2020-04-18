@@ -1,3 +1,3 @@
 # rainy
 
-a web chat room based on vue and web socket.
+一个基于 websocket 的聊天室。
