@@ -62,7 +62,7 @@ export default {
 
 	.dialog {
 		position: relative;
-		width: 320px;
+		width: 350px;
 		height: auto;
 		left: 50%;
 		top: 50%;
@@ -70,10 +70,13 @@ export default {
 		border-radius: 5px;
 		transform: translate(-50%, -50%);
 		padding: 20px;
-		box-shadow: 2px 1px 1px #eee;
 		.content {
 			input {
 				padding: 0 10px;
+				width: 100%;
+				outline: none;
+				line-height: 30px;
+				border: 1px solid #ccc;
 			}
 		}
 	}

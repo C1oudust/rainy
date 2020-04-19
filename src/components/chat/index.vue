@@ -1,17 +1,17 @@
 <template>
 	<div id="app">
 		<dialog-window ref="loginDialog" title="你的昵称" confirmBtn="进入" @confirm="login">
-			<input class="nickname" v-model="nickname" type="text" />
+			<input v-model="nickname" type="text" />
 		</dialog-window>
 
 		<dialog-window
 			ref="createGroupDialog"
-			title="请输入群名称"
+			title="输入群名称"
 			cancelBtn="取消"
 			confirmBtn="确认"
 			@confirm="createGroup"
 		>
-			<input class="nickname" v-model="groupName" type="text" />
+			<input v-model="groupName" type="text" />
 		</dialog-window>
 
 		<div class="container">
@@ -19,8 +19,12 @@
 				<div class="aside content">
 					<div class="header">
 						<div class="tab-bar">
-							<label :class="{active:switchType==1, unread: usersUnRead}" for @click="switchType=1">联系人</label>
-							<label :class="{active:switchType==2, unread: groupsUnRead}" for @click="switchType=2">群聊</label>
+							<label :class="{active:switchType==1,unread: usersUnRead}" for @click="switchType=1">
+								<div :class="[{userActive:switchType==1},'user']"></div>
+							</label>
+							<label :class="{active:switchType==2, unread: groupsUnRead}" for @click="switchType=2">
+								<div :class="[{groupActive:switchType==2},'group']"></div>
+							</label>
 						</div>
 					</div>
 					<div class="body user-list">
@@ -32,7 +36,7 @@
 								:key="item.uid"
 							>
 								<div class="profile">
-									<img src="../assets/profile.png" alt />
+									<img src="@/assets/profile.png" alt />
 								</div>
 								<p>{{item.nickname}}</p>
 								<span class="tips-num" v-if="item.unread">{{item.unread}}</span>
@@ -46,7 +50,7 @@
 								:key="item.uid"
 							>
 								<div class="group">
-									<img src="../assets/group.png" alt />
+									<img src="@/assets/group.png" alt />
 								</div>
 								<p>{{item.name}}</p>
 								<span class="tips-num" v-if="item.unread">{{item.unread}}</span>
@@ -54,7 +58,7 @@
 							</div>
 							<div class="func">
 								<div class="new-group" @click="$refs.createGroupDialog.show()">
-									<img src="../assets/add.png" alt />
+									<img src="@/assets/add.png" alt />
 								</div>
 							</div>
 						</div>
@@ -85,8 +89,16 @@
 						</div>
 					</div>
 				</div>
-				<div class="footer">
-					<textarea autocomplete="off" autofocus required type="text" v-model="msg" placeholder="请输入内容" />
+				<div class="footer" v-show="title">
+					<textarea
+						autocomplete="off"
+						autofocus
+						required
+						type="text"
+						v-model="msg"
+						placeholder="Ctrl + Enter 键发送"
+					/>
+
 					<button @click="send">发送</button>
 				</div>
 			</div>
@@ -96,7 +108,7 @@
 
 <script>
 import moment from 'moment'
-import DialogWindow from '../components/dialog/index'
+import DialogWindow from '@/components/dialog/index'
 export default {
 	name: 'Page',
 	components: {
@@ -120,7 +132,7 @@ export default {
 	},
 	mounted() {
 		let vm = this;
-		let user = localStorage.getItem('WEB_IM_USER');
+		let user = localStorage.getItem('RAINY_USER');
 		user = user && JSON.parse(user) || {};
 		vm.uid = user.uid;
 		vm.nickname = user.nickname;
@@ -131,8 +143,16 @@ export default {
 		}
 		document.onkeydown = function (event) {
 			var e = event || window.event;
-			if (e && e.keyCode == 13) {
+			if (e && e.ctrlKey && e.keyCode == 13) {
 				vm.send()
+			}
+			else if (
+				e & e.keyCode == 13
+			) {
+				event.preventDefault();//兼容IE8
+				e.returnValue = false;
+				//TODO 手动增加换行符
+
 			}
 		}
 		window.onbeforeunload = function () {
@@ -205,7 +225,7 @@ export default {
 				groupName: item.name,
 				bridge: []
 			}));
-			this.$message({ type: 'success', message: `成功加入${item.name}` })
+			this.$message({ message: `成功加入${item.name}` })
 		},
 		checkUserIsGroup(item) {
 			return item.users.some(item => {
@@ -215,9 +235,15 @@ export default {
 		createGroup() {
 			this.groupName = this.groupName.trim();
 			if (!this.groupName) {
-				this.$message({ type: 'error', message: '请输入群名称' })
+				this.$message({ message: '请输入群名称' })
 				return;
 			}
+			this.currentGroups.forEach(item => {
+				if (item.name == this.groupName) {
+					this.$message({ message: '该名称的群组已存在' })
+					return;
+				}
+			})
 			this.socket.send(JSON.stringify({
 				uid: this.uid,
 				type: 10,
@@ -231,7 +257,7 @@ export default {
 				return item.uid === this.uid
 			})
 			if (!issome) {
-				this.$message({ type: 'error', message: `您还不是${item.name}群成员` })
+				this.$message({ message: `您还不是该群成员` })
 				return
 			}
 			this.bridge = [];
@@ -252,7 +278,7 @@ export default {
 				return
 			}
 			if (!this.bridge.length && !this.groupId) {
-				this.$message({ type: 'error', message: '请选择发送人或者群' })
+				this.$message({ message: '请选择发送人或者群' })
 				return;
 			}
 			this.sendMessage(100, this.msg)
@@ -274,7 +300,7 @@ export default {
 				vm.socket = new WebSocket('ws://localhost:4001');
 				let socket = vm.socket;
 				socket.onopen = function () {
-					vm.$message({ type: 'success', message: '连接服务器成功' })
+					vm.$message({ message: '连接服务器成功' })
 					if (!vm.uid) {
 						vm.uid = 'rain_user_' + moment().valueOf();
 						localStorage.setItem('RAINY_USER', JSON.stringify({
@@ -282,7 +308,8 @@ export default {
 							nickname: vm.nickname
 						}))
 					}
-					vm.sendMessage(1)
+					// 请求数据，以加载已有的用户和群组
+					vm.sendMessage(1);
 				}
 				socket.onclose = function () {
 					console.log("服务器关闭");
@@ -311,7 +338,7 @@ export default {
 		login() {
 			this.nickname = this.nickname.trim();
 			if (!this.nickname) {
-				this.$message({ type: 'error', message: '请输入您的昵称' })
+				this.$message({ message: '你的昵称' })
 				return;
 			}
 			this.$refs.loginDialog.hide()
@@ -337,41 +364,23 @@ body,
 	font-family: Tahoma, Arial, sans-serif, Helvetica;
 }
 
-.nickname {
-	line-height: 30px;
-	width: 300px;
-}
-
-.dis-flex {
-	display: flex;
-}
-
 .container {
 	display: flex;
 	width: 100%;
 	height: 100%;
 	.content {
 		display: flex;
-		flex-direction: row;
 		flex: 1;
-
 		min-width: 0;
 		flex-direction: column;
 
 		.header {
-			padding: 5px 0;
-
-			box-shadow: 1px -1px 2px 2px #eee;
-			line-height: 40px;
-			height: 40px;
+			// padding-bottom: 5px;
+			height: 50px;
 			z-index: 10;
 			background: #fff;
 		}
 
-		.body {
-			flex: 1;
-			overflow-y: auto;
-		}
 		// 滚动条样式
 		::-webkit-scrollbar {
 			width: 10px;
@@ -397,13 +406,14 @@ body,
 
 		.footer {
 			border-left: 1px solid #eee;
-			position: relative;
+			width: 100%;
 			height: 130px;
+			min-width: 300px;
 		}
 	}
 
 	.left {
-		width: 30vw;
+		width: 25vw;
 
 		.aside {
 			height: 100%;
@@ -413,13 +423,16 @@ body,
 			display: flex;
 			label {
 				flex: 1;
-				text-align: center;
+				display: flex;
+				justify-content: center;
+				align-items: center;
 				line-height: 40px;
 				cursor: pointer;
 				font-size: 1.2rem;
-
+				border-bottom: 1px solid #eee;
+				padding: 8px 0;
 				&.active {
-					color: #66a6ff;
+					border-bottom: none;
 				}
 
 				&:last-child {
@@ -429,30 +442,56 @@ body,
 				&.unread {
 					//TODO 未读时标签栏的样式
 				}
+				.user {
+					width: 35px;
+					height: 35px;
+					border-bottom: none;
+					background: url(../../assets/profile.png) no-repeat;
+					background-size: contain;
+					&.userActive {
+						background: url(../../assets/profile_active.png)
+							no-repeat;
+						background-size: contain;
+					}
+				}
+				.group {
+					width: 26px;
+					height: 26px;
+					background: url(../../assets/group.png) no-repeat;
+					background-size: contain;
+
+					&.groupActive {
+						background: url(../../assets/group_active.png) no-repeat;
+						background-size: contain;
+					}
+				}
 			}
 		}
 
 		.user-list {
 			position: relative;
 			font-size: 1.2rem;
+			height: 100%;
 			.func {
 				position: absolute;
 				bottom: 20px;
 				right: 20px;
-
-				border-radius: 50%;
-				background-color: #66a6ff;
-
 				.new-group {
 					cursor: pointer;
 					height: 45px;
 					width: 45px;
+					border-radius: 50%;
+					background-color: #66a6ff;
+
 					position: relative;
 					img {
 						position: absolute;
 						top: 50%;
 						left: 50%;
 						transform: translate(-50%, -50%);
+					}
+					&:active {
+						background: #48c7ef;
 					}
 				}
 			}
@@ -479,8 +518,8 @@ body,
 				width: 35px;
 				img {
 					margin-top: 4px;
-					width: 30px;
-					height: 30px;
+					width: 26px;
+					height: 26px;
 				}
 			}
 			p {
@@ -518,8 +557,7 @@ body,
 				height: 25px;
 				line-height: 25px;
 				text-align: center;
-				border-radius: 2px;
-				border: 1px solid #66a6ff;
+				border-radius: 3px;
 				cursor: pointer;
 			}
 		}
@@ -529,15 +567,17 @@ body,
 	}
 
 	.right {
-		flex: 1;
-
 		.title {
 			font-size: 1.5rem;
-			padding: 5px 20px;
+			padding: 0 20px;
+			line-height: 50px;
 		}
 
 		.body {
+			flex: 1;
 			padding: 10px 20px;
+			overflow-y: auto;
+			min-width: 300px;
 		}
 
 		.chat {
@@ -602,7 +642,9 @@ body,
 		}
 
 		.footer {
+			position: relative;
 			textarea {
+				width: 92%;
 				height: 50%;
 				border: none;
 				margin: 10px 15px;
@@ -629,8 +671,8 @@ body,
 	}
 }
 
-// 警告框
-div.my-el-message {
+// 提示框
+div.tip-message {
 	text-align: center;
 	position: absolute;
 	height: 100%;
@@ -639,11 +681,7 @@ div.my-el-message {
 	left: 0;
 	z-index: 4000;
 
-	&.success .my-el-message__group {
-		// background-image: url('./assets/success.svg');
-	}
-
-	.el-message-cover {
+	.tip-message-cover {
 		position: fixed;
 		height: 100%;
 		width: 100%;
@@ -654,11 +692,9 @@ div.my-el-message {
 		z-index: 4001;
 	}
 
-	.my-el-message__group {
-		margin: 0;
+	.tip-message-group {
 		opacity: 0.8;
 		background-color: white;
-		// background: #ffffff url('./assets/warn.svg') no-repeat 17px center;
 		background-size: 20px 20px;
 		top: 50%;
 		border-radius: 6px;
@@ -668,11 +704,11 @@ div.my-el-message {
 		overflow: hidden;
 		line-height: 60px;
 		position: fixed;
-		min-width: 350px;
+		min-width: 300px;
 		left: 50%;
 		transform: translateX(-50%);
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
-		animation: myshow 0.2s;
+		animation: show 0.2s;
 
 		p {
 			margin: 0;
@@ -682,10 +718,9 @@ div.my-el-message {
 			padding-right: 10px;
 		}
 
-		.my-el-message-close {
+		.tip-message-close {
 			width: 15px;
 			height: 15px;
-			// background: url('./assets/close.svg') no-repeat;
 			background-size: 15px 15px;
 			position: absolute;
 			right: 14px;
@@ -694,7 +729,7 @@ div.my-el-message {
 		}
 	}
 
-	@keyframes myshow {
+	@keyframes show {
 		from {
 			transform: scale(0) translateX(-100%);
 		}

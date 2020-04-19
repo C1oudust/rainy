@@ -1,15 +1,11 @@
 var option = {
-  type: 'info', //主题，无用属性
-  iconClass: '', //自定义图标类名，无用属性
-  customClass: '', //自定义类名， 无用属性
-  showClose: true, //是否显示关闭按钮，无用属性
   message: '', //消息文字
   duration: 2000, //显示时间，毫秒，为0提示框不关闭
   id: '', //消息id，动态时间戳
   onClose: null, //关闭之后的回调函数
   timer: 0,
 };
-var Message = function(options, type) {
+var Message = function(options) {
   if (typeof options === 'string') {
     option.message = options;
   } else {
@@ -17,7 +13,7 @@ var Message = function(options, type) {
       option[i] = options[i];
     }
   }
-  type && (option.type = type);
+  // type && (option.type = type);
   creatHtml();
 };
 var creatHtml = function() {
@@ -31,13 +27,13 @@ var creatHtml = function() {
     option.id = 'msg' + option.id;
     node.id = option.id;
     node.innerHTML =
-      '<div class="my-el-message ' +
+      '<div class="tip-message ' +
       option.type +
-      '"><div class="el-message-cover"></div><div class="my-el-message__group"><p id="' +
+      '"><div class="tip-message-cover"></div><div class="tip-message-group"><p id="' +
       option.id +
       '-p">' +
       option.message +
-      '</p><div class="my-el-message-close" id="' +
+      '</p><div class="tip-message-close" id="' +
       option.id +
       '-close"></div></div></div>';
     document.body.appendChild(node);
@@ -67,10 +63,10 @@ var creatHtml = function() {
     }
   };
 
-['success', 'warning', 'info', 'error'].forEach(function(type) {
-  Message[type] = function(options) {
-    return Message(options, type);
-  };
-});
-
+// ['success', 'warning', 'info', 'error'].forEach(function(type) {
+//   Message[type] = function(options) {
+//     return Message(options, type);
+//   };
+// });
+// return Message(options);
 export default Message;

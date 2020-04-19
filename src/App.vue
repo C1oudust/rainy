@@ -1,14 +1,14 @@
 <template>
-	<page></page>
+	<chat></chat>
 </template>
 
 <script>
-import page from './components/Page.vue'
+import chat from './components/chat'
 
 export default {
 	name: 'App',
 	components: {
-		page
+		chat
 	}
 }
 </script>
