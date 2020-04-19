@@ -2,7 +2,7 @@ var option = {
   message: '', //消息文字
   duration: 2000, //显示时间，毫秒，为0提示框不关闭
   id: '', //消息id，动态时间戳
-  onClose: null, //关闭之后的回调函数
+  callback: null, //回调函数
   timer: 0,
 };
 var Message = function(options) {
@@ -13,7 +13,6 @@ var Message = function(options) {
       option[i] = options[i];
     }
   }
-  // type && (option.type = type);
   creatHtml();
 };
 var creatHtml = function() {
@@ -50,8 +49,8 @@ var creatHtml = function() {
     document.body.removeChild(remove);
     option.id = '';
     clearTimeout(option.timer);
-    if (typeof option.onClose === 'function') {
-      option.onClose(Message);
+    if (typeof option.callback === 'function') {
+      option.callback(Message);
     }
   },
   setTimeoutClose = function() {
@@ -63,10 +62,4 @@ var creatHtml = function() {
     }
   };
 
-// ['success', 'warning', 'info', 'error'].forEach(function(type) {
-//   Message[type] = function(options) {
-//     return Message(options, type);
-//   };
-// });
-// return Message(options);
 export default Message;

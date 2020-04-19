@@ -24,7 +24,7 @@ function boardCast(obj) {
     return;
   }
 
-  server.connections.forEach((conn, index) => {
+  server.connections.forEach((conn) => {
     conn.sendText(JSON.stringify(obj));
   });
 }

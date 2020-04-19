@@ -84,7 +84,7 @@
 									<span class="date">{{item.date}}</span>
 									<span v-if="item.uid == uid" class="nickname">{{item.nickname}}</span>
 								</div>
-								<p class="message-box">{{item.msg}}</p>
+								<pre class="message-box">{{item.msg}}</pre>
 							</template>
 						</div>
 					</div>
@@ -149,7 +149,7 @@ export default {
 			else if (
 				e & e.keyCode == 13
 			) {
-				event.preventDefault();//兼容IE8
+				e.preventDefault();//兼容IE8
 				e.returnValue = false;
 				//TODO 手动增加换行符
 
@@ -523,8 +523,8 @@ body,
 				}
 			}
 			p {
-				margin-left: 5px;
-				font-size: 1.2rem;
+				margin-left: 4px;
+				font-size: 1.1rem;
 			}
 			&.offline {
 				color: #ccc;
